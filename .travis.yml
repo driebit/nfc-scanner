@@ -13,4 +13,6 @@ deploy:
   file: nfc-scanner
   skip_cleanup: true
   on:
-    repo: driebit/nfc-scanner
+    tags: true
+    all_branches: true
+
