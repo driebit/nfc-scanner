@@ -1,0 +1,12 @@
+language: go
+install:
+  - go get github.com/fuzxxl/nfc/2.0/nfc
+  - go build
+deploy:
+  provider: releases
+  api_key:
+    secure: amx9n87+V0kt7H/8rO0WVamI0ino9TuY5A+MCTONgmE5ZU7BOA7+KF2GMGUQClRLcccav4J0bPHpb851dLctuTydlKONyx2mwkehyQ7J+xW4PPHKZTBzZFlu201geQ++uDvhgtw1mujAjXpuNG5AmEx9A9Ww8ibLaPkpX1v6fYrCpSZlnQOUHV5MyUn6BGwQmu65naJ3BO6tNhTCOXDBcV+YIZyb8YzwC4RCYhEk0xwGYWTr59NHrgTq9sAHkpsUoGR2gqOlF3edW6YEcSt26kzdGk+/k7oncUtj5UciMLriaw5VFkwMLWDLvZLXsaRDeSLGrO4rRCfUKAGy6VUvnpB5uD2yHV9C3WIAqNB/7ASpqZ6tFj2YdqG7LXHajFDn/bcZgj8mZXqtl8z3g5kt4I+GmFCIe0P077mwvjAI7pw8yD/hamwFb5uvsWjPq5uOxjpVm+Z+B/qZj42GtxWtPORfnJAtaPdDNb3wBtytu96Nlh/11Cm1OXnhosxpCHkf8uKgXIqe2+u5p4Bg1SIlTDmKSzF4QI3ABL6LXyNME5/vnsyuUvzdhqyxMxnDLMX1ePZGppc2Ixuer/PR2x6KH+ggu77fn2oHB4aHUSQ5sITCsModgoOQJECkZH83W87J40Pq/7bLtKge9rCXLwJw32UySfyuIq1ePFMsXNUIbyw=
+  file: nfc-scanner
+  skip_cleanup: true
+  on:
+    repo: driebit/nfc-scanner
