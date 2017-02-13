@@ -1,4 +1,7 @@
 language: go
+addons:
+  apt:
+    packages: libnfc-dev
 install:
   - go get github.com/fuzxxl/nfc/2.0/nfc
   - go build
