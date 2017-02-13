@@ -1,6 +1,8 @@
 driebit/nfc-scanner
 ===================
 
+[![Build Status](https://travis-ci.org/driebit/nfc-scanner.svg?branch=master)](https://travis-ci.org/driebit/nfc-scanner)
+
 A Linux binary for scanning NFC/RFID tags and submitting their UID to the  
 [Ginger Tagger API](https://github.com/driebit/ginger/blob/master/modules/mod_ginger_tagger/README.md)
 over HTTP.
