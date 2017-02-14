@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"os"
 	"fmt"
-	"log"
+	"log/syslog"
 	"net/http"
 	"net/url"
 	"io/ioutil"
@@ -14,52 +14,66 @@ import (
 	"time"
 )
 
+var l *syslog.Writer
+
+func init() {
+	l, _ = syslog.New(syslog.LOG_ERR, "nfc-scanner")
+	defer l.Close()
+}
+
 func main() {
+	access_token := get_access_token()
+
+	// Open first available device
 	device, err := nfc.Open("")
 	if (err != nil) {
 		panic(err)
 	}
 
-	access_token := get_access_token()
+	// Discover NFC device's capabilities
+	modulations, err := device.SupportedModulations(nfc.TargetMode)
+	if (err != nil) {
+		panic(err)
+	}
+	rates, err := device.SupportedBaudRates(modulations[0])
+	if (err != nil) {
+		panic(err)
+	}
+	modulation := nfc.Modulation{modulations[0], rates[0]}
+
+	fmt.Println("Listening for NFC tags...")
+	err = device.InitiatorInit()
+	if (err != nil) {
+		panic(err)
+	}
 
 	var previous string
 	for {
-		err = device.InitiatorInit()
-		if (err != nil) {
-			panic(err)
-		}
-		modulation := nfc.Modulation{nfc.ISO14443a, nfc.Nbr106}
-
+		time.Sleep(100 * time.Millisecond)
 		t, err := device.InitiatorSelectPassiveTarget(modulation, nil)
 		if (err == nfc.Error(nfc.ETIMEOUT)) {
-			// On timeout, continue the loop
+			// On read timeout error, just continue the loop
 			continue
 		} else if (err != nil) {
+			// Panic on any other error
 			panic(err)
 		}
 
-		mtarget, _ := t.(*nfc.ISO14443aTarget)
-		hexUID := hex.EncodeToString(mtarget.UID[:mtarget.UIDLen])
-
-		if (hexUID != previous) {
+		if (t.String() != previous) {
+			target, _ := t.(*nfc.ISO14443aTarget)
+			hexUID := hex.EncodeToString(target.UID[:target.UIDLen])
 			fmt.Println("Read " + hexUID)
 	    		register_scan(hexUID, access_token)
-			fmt.Println("SENT")
 		} else {
-			fmt.Println("THE SAME")
+			// Delay continuation a bit to prevent hanging
 			time.Sleep(100 * time.Millisecond)
 		}
 
-		previous = hexUID
+		previous = t.String()
 	}
 
 	nfc.Device.Close(device)
 }
-
-func logMsg(m interface{}) {
-	fmt.Println(m)
-}
-
 
 func get_access_token() string {
 	Url := os.Getenv("API_URL") + "/oauth2/token"
@@ -71,30 +85,31 @@ func get_access_token() string {
 		panic(err)
 	}
 
+	if (resp.StatusCode != http.StatusOK) {
+		panic("Could not get API access token: " + resp.Status)
+	}
+
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
 	var token_response map[string]interface{}
 	err = json.Unmarshal(body, &token_response)
 	if (err != nil) {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	return token_response["access_token"].(string)
 }
 
 func register_scan(rfid string, access_token string) {
-
-		return
-
-	panel_id := os.Getenv("PANEL_ID")
+	object_id := os.Getenv("OBJECT_ID")
 	type ApiRequestBody struct {
 		Rfids []string `json:"rfids"`
 		ObjectId string `json:"object_id"`
 	}
 	request_body := ApiRequestBody{
 		Rfids: []string{rfid},
-		ObjectId: panel_id,
+		ObjectId: object_id,
 	}
 	json, err := json.Marshal(request_body)
 	if (err != nil) {
@@ -111,8 +126,9 @@ func register_scan(rfid string, access_token string) {
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	if (resp.StatusCode != http.StatusOK) {
+	if (resp.StatusCode < 200 || resp.StatusCode >= 400) {
+		l.Err(resp.Status)
 		// Ignore any of the RFIDs that are not registered with Tagger
-		logMsg(string(body))
+		l.Err("Unregistered RFID: " + rfid + " with response: " + string(body))
 	}
 }
