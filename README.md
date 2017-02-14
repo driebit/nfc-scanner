@@ -13,12 +13,12 @@ Usage
 Following the [Twelve-factor principles](https://12factor.net), nfc-scanner is
 configured using environment variables:
 
-| Variable        | Explanation                                   | Example             |
-| --------------- | --------------------------------------------- | ------------------- |
-| `API_URL`       | URL to the Tagger API                         | "https://ginger.nl" |
-| `CLIENT_ID`     | your Tagger API client id                     | "you"               |
-| `CLIENT_SECRET` | your Tagger API client secret                 | "007secret"         |
-| `PANEL_ID`      | the scanned object, e.g. panel or activity id | 516                 |
+| Variable        | Explanation                                           | Example             |
+| --------------- | ----------------------------------------------------- | ------------------- |
+| `API_URL`       | URL to your Ginger site running the Tagger API        | `https://ginger.nl` |
+| `CLIENT_ID`     | your Tagger API client id                             | `some_id`           |
+| `CLIENT_SECRET` | your Tagger API client secret                         | `super_secret`      |
+| `OBJECT_ID`     | resource id of the scanned object (panel or activity) | `516                |
 
 Download the binary (replace 0.1.0 with the [latest release version](https://github.com/driebit/nfc-scanner/releases)):
 
@@ -41,5 +41,6 @@ Then start nfc-scanner (don’t forget to plug in the NFC reader):
 $ ./nfc-scanner
 ```
 
-When started, nfc-scanner will listen in an infinite loop for NFC tags. When a
-tag is scanned, its UID is sent to the Tagger API.
+When started, nfc-scanner will listen continuously for NFC tags. When a tag is 
+scanned, its UID is sent to the Tagger API. Debug information is written to the
+syslog.
